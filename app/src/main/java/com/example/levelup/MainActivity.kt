@@ -1,5 +1,6 @@
 package com.example.levelup
 
+import android.R.attr.fontWeight
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,7 +80,7 @@ fun HomeContent(innerPadding: PaddingValues) {
     ) {
         SportsImage()
         HomeButtons()
-        CopyRights()
+        Footer()
     }
 }
 
@@ -94,7 +96,7 @@ fun SportsImage() {
 }
 
 @Composable
-fun CopyRights() {
+fun Footer() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -113,25 +115,42 @@ fun CopyRights() {
 
 @Composable
 fun HomeButtons() {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.fillMaxWidth().padding(8.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .offset(y = (+35).dp),
+        contentAlignment = Alignment.Center
     ) {
-        Button( onClick = { /*TODO*/ }){
-            Text(
-                color = Color.Black,
-                modifier = Modifier.alpha(0.3f),
-                text = "Play",
-                style = TextStyle(fontSize = 15.sp)
-            )
-        }
-        Button( onClick = { /*TODO*/ }) {
-            Text(
-                color = Color.Black,
-                modifier = Modifier.alpha(0.3f),
-                text = "Replay",
-                style = TextStyle(fontSize = 15.sp)
-            )
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(1.0f) // optional: row width
+        ) {
+            Button(
+                onClick = { /*TODO*/ },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFFFFF).copy(alpha = 0.3f),
+                    contentColor = Color.Black
+                )
+            ) {
+                Text(
+                    text = "Play",
+                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                )
+            }
+
+            Button(
+                onClick = { /*TODO*/ },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFFFFF).copy(alpha = 0.3f),
+                    contentColor = Color.Black
+                )
+            ) {
+                Text(
+                    text = "Replay",
+                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                )
+            }
         }
     }
 }
