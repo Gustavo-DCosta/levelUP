@@ -2,7 +2,6 @@ package com.example.levelup
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-// Note: slideInHorizontally / slideOutHorizontally imports no longer needed
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,10 +17,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// --- CRITICAL IMPORTS FOR THE 'by' DELEGATE ---
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel  // FIX 4: added missing import
 
 @Composable
 fun MainNavigation() {
@@ -31,7 +29,6 @@ fun MainNavigation() {
         modifier = Modifier.fillMaxSize(),
         topBar = { TopBar() }
     ) { innerPadding ->
-        // Simple crossfade between screens
         AnimatedContent(
             targetState = currentScreen,
             transitionSpec = {
@@ -77,7 +74,6 @@ fun HomeContent(innerPadding: PaddingValues, onPlayClick: () -> Unit) {
 
 @Composable
 fun HomeButtons(onNavigate: () -> Unit) {
-    // Staggered button entrance
     var playVisible by remember { mutableStateOf(false) }
     var replayVisible by remember { mutableStateOf(false) }
 
@@ -99,7 +95,6 @@ fun HomeButtons(onNavigate: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Play button with bounce press effect
             AnimatedVisibility(
                 visible = playVisible,
                 enter = fadeIn(tween(300)) + scaleIn(
@@ -116,7 +111,6 @@ fun HomeButtons(onNavigate: () -> Unit) {
                 )
             }
 
-            // Replay button with slight delay
             AnimatedVisibility(
                 visible = replayVisible,
                 enter = fadeIn(tween(300)) + scaleIn(
@@ -136,9 +130,6 @@ fun HomeButtons(onNavigate: () -> Unit) {
     }
 }
 
-/**
- * A button that scales down on press and bounces back — gives satisfying tactile feel.
- */
 @Composable
 fun BouncyButton(text: String, onClick: () -> Unit) {
     var pressed by remember { mutableStateOf(false) }
@@ -168,7 +159,6 @@ fun BouncyButton(text: String, onClick: () -> Unit) {
         )
     }
 
-    // Reset press state after a short delay so it can re-trigger
     LaunchedEffect(pressed) {
         if (pressed) {
             kotlinx.coroutines.delay(150)
@@ -182,84 +172,96 @@ fun GamesScreen(
     innerPadding: PaddingValues = PaddingValues(0.dp),
     onBackClick: (() -> Unit)? = null
 ) {
-    val sports = listOf("Volley-ball", "Tennis", "Badminton")
+    val viewModel: SportViewModel = viewModel()
+    val status by viewModel.status.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val sports = listOf("volleyball", "tennis", "badminton")
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFF5E9DCC),
-                        Color(0xFF657CF4),
-                        Color(0xFF2C4EFF)
-                    )
-                )
-            )
-    ) {
-        Column(
+    LaunchedEffect(status) {
+        status?.let { snackbarHostState.showSnackbar(it) }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { scaffoldPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            sports.forEachIndexed { index, sport ->
-                // Each card slides in from alternating sides with staggered delay
-                StaggeredSportCard(
-                    sportName = sport,
-                    index = index,
-                    labelOnRight = index % 2 != 0
+                .padding(scaffoldPadding)
+                .padding(innerPadding)
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF5E9DCC),
+                            Color(0xFF657CF4),
+                            Color(0xFF2C4EFF)
+                        )
+                    )
                 )
-            }
-        }
-
-        // Optional back button (top-left)
-        if (onBackClick != null) {
-            var backPressed by remember { mutableStateOf(false) }
-            val backScale by animateFloatAsState(
-                targetValue = if (backPressed) 0.88f else 1f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                label = "backScale"
-            )
-            LaunchedEffect(backPressed) {
-                if (backPressed) {
-                    kotlinx.coroutines.delay(150)
-                    backPressed = false
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                sports.forEachIndexed { index, sport ->
+                    StaggeredSportCard(
+                        sportName = sport,
+                        index = index,
+                        labelOnRight = index % 2 != 0,
+                        viewModel = viewModel
+                    )
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.TopStart
-            ) {
-                Button(
-                    onClick = {
-                        backPressed = true
-                        onBackClick()
-                    },
-                    modifier = Modifier.scale(backScale),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White.copy(alpha = 0.25f),
-                        contentColor = Color.White
-                    )
+            if (onBackClick != null) {
+                var backPressed by remember { mutableStateOf(false) }
+                val backScale by animateFloatAsState(
+                    targetValue = if (backPressed) 0.88f else 1f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                    label = "backScale"
+                )
+                LaunchedEffect(backPressed) {
+                    if (backPressed) {
+                        kotlinx.coroutines.delay(150)
+                        backPressed = false
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.TopStart
                 ) {
-                    Text("← Back", fontWeight = FontWeight.Bold)
+                    Button(
+                        onClick = {
+                            backPressed = true
+                            onBackClick()
+                        },
+                        modifier = Modifier.scale(backScale),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White.copy(alpha = 0.25f),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("← Back", fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
     }
 }
 
-/**
- * Wraps SportCard with a staggered slide-in animation.
- * Even-indexed cards slide from the left, odd from the right.
- */
 @Composable
-fun StaggeredSportCard(sportName: String, index: Int, labelOnRight: Boolean) {
+fun StaggeredSportCard(
+    sportName: String,
+    index: Int,
+    labelOnRight: Boolean,  // FIX 1: was "Boolean?" with missing comma
+    viewModel: SportViewModel
+) {
     var visible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -276,14 +278,14 @@ fun StaggeredSportCard(sportName: String, index: Int, labelOnRight: Boolean) {
     ) {
         SportCard(
             sportName = sportName,
-            labelOnRight = labelOnRight
+            labelOnRight = labelOnRight,  // FIX 2: added missing comma
+            viewModel = viewModel
         )
     }
 }
 
 @Composable
 fun TopBar() {
-    // TopBar slides down from above on first load
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 

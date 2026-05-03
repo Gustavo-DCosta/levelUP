@@ -16,22 +16,25 @@ import androidx.compose.ui.unit.sp
 
 
 @Composable
-fun SportCard(sportName: String, labelOnRight: Boolean) {
+fun SportCard(
+    sportName: String,
+    labelOnRight: Boolean,
+    viewModel: SportViewModel  // add this
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(130.dp)
             .clip(RoundedCornerShape(32.dp))
-            .background(Color(0xFF2C3680)) // slightly darker than background for the card
-            .clickable { /* TODO: navigate */ }
+            .background(Color(0xFF2C3680))
+            .clickable { viewModel.sendSport(sportName) }  // update this
     ) {
-        // Label badge
         Box(
             modifier = Modifier
                 .align(if (labelOnRight) Alignment.BottomEnd else Alignment.BottomStart)
                 .padding(12.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFFFFF17F)) // yellow badge
+                .background(Color(0xFFFFF17F))
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text(
